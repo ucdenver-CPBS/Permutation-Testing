@@ -1,6 +1,6 @@
 ---
 title: "1-T-test"
-author: "Mayla Boguslav"
+author: "Mayla Boguslav and Mike Schaffer"
 date: "12/6/2017"
 output: html_document
 ---
@@ -8,6 +8,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+# Find the bug in our permutation code, win a prize
 
 ## T-test background information 
 Source: [Wikipedia](https://en.wikipedia.org/wiki/Student%27s_t-test)
@@ -23,13 +25,13 @@ The assumptions underlying a t-test are:
 
 
 
-## Import Data iris
+## Import iris Data
 
 ```{r data_import}
 data("iris")
 data.subset<-subset(iris, iris[,5] %in% c("setosa", "versicolor")) #subset the data into only 2 species
 # T-test to find differences in sepal length between setosa and versicolor species
-observed.t = t.test(data.subset$Sepal.Length,data.subset$Species=="setosa")$statistic
+observed.t = t.test(data.subset$Sepal.Width,data.subset$Species=="setosa")$statistic
 
 ```
 
@@ -49,12 +51,12 @@ perm.t = function(doesnt.matter, x, y){
 }
 
 n = 10 #number of permutations
-all.the.ts = sapply(1:n, perm.t, x=data.subset$Sepal.Length, y=data.subset$Species=='setosa')
+all.the.ts = sapply(1:n, perm.t, x=data.subset$Sepal.Width, y=data.subset$Species=='setosa')
 
 # Check to see where our observed t_value sits on the distribution of permuted values
 p.value = sum(all.the.ts <= abs(observed.t))/n #the p-value is significant if less than 0.05 generally
-
-
+# P-value
+print(p.value)
 ```
 
 
