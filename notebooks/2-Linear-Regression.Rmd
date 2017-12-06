@@ -5,30 +5,68 @@ date: "12/6/2017"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
 ## Linear Regression Overview
 
-Linear regression is a way to iden
+In statistics, linear regression is a linear approach for modeling the relationship between a scalar dependent variable y and one or more explanatory variables (or independent variables) denoted X. The case of one explanatory variable is called simple linear regression. (https://en.wikipedia.org/wiki/Linear_regression)
 
 ## Data
 
-## 
+Load the Iris R Dataset:
 
+This dataset describes different species of iris flowers. There are many ways to use this data to find correlative descriptions of the flowers. In this example, we will use sepal length as the explanatory, or X variable, and sepal width as the dependent, or Y variable. 
 
-
-```{r cars}
-summary(cars)
+```{r data}
+data("iris")
+head(iris)
 ```
 
-## Including Plots
+## Creating the model
 
-You can also embed plots, for example:
+```{r model}
+#Subset the first two columns of the Iris dataset, and make a copy to not rewrite when shuffling. 
+D<-iris[, c(1, 2)]
+D2<-iris[, c(1, 2)]
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+#Create a permute function
+lm.permute <- function(D2){
+  D2$Sepal.Length<-sample(D2$Sepal.Length) #shuffling the first column (sepal length)
+  model = lm(Sepal.Length ~ Sepal.Width, data = D2) #create a linear model on the shuffled data
+  t<-summary(model)$coefficients[2,3] #grab the tvalue from this run
+  return(t)
+}
+
+n<-20 #number of permutations you want to run
+tvalues<-sapply(c(1:n), function(x) lm.permute(D)) #run the permute function n times
+
+#Create the real model and extract the real tvalue
+real_model = lm(Sepal.Length ~ Sepal.Width, data = D)
+real_Coefficients<-summary(real_model)$coefficients
+real_t<-real_Coefficients[2,3]
+
+#Calculate the pvalue based on the null distribution of tvalues and the real value.
+pvalue<-sum(abs(tvalues)<=abs(real_t))/n
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Plots
+
+Plot the density of the tvalue distribution:
+```{r density}
+plot(density(tvalues))
+```
+
+The density reults in a non normal distribution. 
+
+
+Plot the relationship between the real data:
+```{r relationship}
+plot(D$Sepal.Length, D$Sepal.Width,
+  xlab = "Sepal Width",
+  ylab = "Sepal Length",
+  main = "Iris flowers"
+)
+```
+
+So the pvalue is `r pvalue`, concluding that there is no significant relationship between sepal length and width, which we can see from the scatterplot above. 
+
