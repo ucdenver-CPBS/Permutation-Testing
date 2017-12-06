@@ -1,0 +1,47 @@
+---
+title: "1-T-test"
+author: "Mayla Boguslav"
+date: "12/6/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## T-test
+
+
+
+
+```{r cars}
+summary(cars)
+```
+
+## Import Data from TCGA on breast cancer
+
+```{r data_import}
+query <- GDCquery(project = "TCGA-BRCA",
+                           data.category = "Gene expression",
+                           data.type = "Gene expression quantification",
+                           platform = "Illumina HiSeq", 
+                           file.type  = "normalized_results",
+                           experimental.strategy = "RNA-Seq",
+                           barcode = c("TCGA-14-0736-02A-01R-2005-01", "TCGA-06-0211-02A-02R-2005-01"),
+                           legacy = TRUE)
+GDCdownload(query, method = "api", files.per.chunk = 10)
+data <- GDCprepare(query)
+```
+
+
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
