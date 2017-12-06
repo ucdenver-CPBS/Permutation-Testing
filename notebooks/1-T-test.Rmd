@@ -1,6 +1,6 @@
 ---
 title: "1-T-test"
-author: "Mayla Boguslav"
+author: "Mayla Boguslav and Mike Schaffer"
 date: "12/6/2017"
 output: html_document
 ---
@@ -9,39 +9,59 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## T-test
+# Find the bug in our permutation code, win a prize
+
+## T-test background information 
+Source: [Wikipedia](https://en.wikipedia.org/wiki/Student%27s_t-test)
+As an example, in the one-sample t-test $t=\frac{Z}{s} = \frac{\frac{(\bar X-\mu)}{\frac{(\sigma)}{\sqrt n}}}{s}$
+where $\bar X$ is the sample mean from a sample $X_1,X_2,…,X_n$, of size n, s is the ratio of sample standard deviation over population standard deviation, σ is the population standard deviation of the data, and μ is the population mean.
+
+
+The assumptions underlying a t-test are:
+
+* X follows a normal distribution with mean μ and variance σ^2^
+* ps^2^ follows a χ^2^ distribution with p degrees of freedom under the null hypothesis, where p is a positive constant
+* Z and s are independent.
 
 
 
-
-```{r cars}
-summary(cars)
-```
-
-## Import Data from TCGA on breast cancer
+## Import iris Data
 
 ```{r data_import}
-query <- GDCquery(project = "TCGA-BRCA",
-                           data.category = "Gene expression",
-                           data.type = "Gene expression quantification",
-                           platform = "Illumina HiSeq", 
-                           file.type  = "normalized_results",
-                           experimental.strategy = "RNA-Seq",
-                           barcode = c("TCGA-14-0736-02A-01R-2005-01", "TCGA-06-0211-02A-02R-2005-01"),
-                           legacy = TRUE)
-GDCdownload(query, method = "api", files.per.chunk = 10)
-data <- GDCprepare(query)
+data("iris")
+data.subset<-subset(iris, iris[,5] %in% c("setosa", "versicolor")) #subset the data into only 2 species
+# T-test to find differences in sepal length between setosa and versicolor species
+observed.t = t.test(data.subset$Sepal.Width,data.subset$Species=="setosa")$statistic
+
 ```
 
+## Permutation test
+What if there is some correlation structure that is influencing our p-value?! What do we do?? 
+Answer: a permutation test!!!! (see overview for details)
 
+```{r perm-test}
+#Function to permute class labels and outputs the t_value
+perm.t = function(doesnt.matter, x, y){
+  # Shuffle the species label
+  y.shuffle = sample(y)
+  # Calculate t-test on this new permutation
+  t.value = t.test(x,y.shuffle)$statistic
+  #print(y.shuffle==y) #check that the shuffling is different than the original
+  return(t.value)
+}
 
+n = 30 #number of permutations
+all.the.ts = sapply(1:n, perm.t, x=data.subset$Sepal.Width, y=data.subset$Species=='setosa')
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+# Check to see where our observed t_value sits on the distribution of permuted values
+p.value = sum(all.the.ts <= abs(observed.t))/n #the p-value is significant if less than 0.05 generally
+# P-value
+print(p.value)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Plot the t-value distribution
+```{r plot_t}
+plot(all.the.ts, xlab="permutation",ylab='t-value')
+plot(density(all.the.ts))
+```
+
