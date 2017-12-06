@@ -59,6 +59,9 @@ p.value = sum(all.the.ts <= abs(observed.t))/n #the p-value is significant if le
 print(p.value)
 ```
 
-
-
+## Plot the t-value distribution
+```{r plot_t}
+plot(all.the.ts, xlab="permutation",ylab='t-value')
+plot(density(all.the.ts), ylab='t-value')
+```
 
